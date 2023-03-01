@@ -7,7 +7,7 @@
 
 // libs 
 const fs = require('fs');
-const { Microsoft, Mojang } = require('minecraft-java-core');
+const { Microsoft, Mojang, AZauth } = require('minecraft-java-core');
 const { ipcRenderer } = require('electron');
 
 import { config, logger, changePanel, database, addAccount, accountSelect } from './utils.js';
@@ -23,6 +23,7 @@ class Launcher {
         this.config = await config.GetConfig().then(res => res);
         this.news = await config.GetNews().then(res => res);
         this.database = await new database().init();
+        this.AZauth = new AZauth('https://batailles-des-mondes.fr')
         this.createPanels(Login, Home, Settings);
         this.getaccounts();
     }
@@ -68,7 +69,7 @@ class Launcher {
             div.classList.add("panel", panel.id)
             div.innerHTML = fs.readFileSync(`${__dirname}/panels/${panel.id}.html`, "utf8");
             panelsElem.appendChild(div);
-            new panel().init(this.config, this.news);
+            new panel().init(this.config, this.news, this.AZauth);
         }
     }
 
@@ -121,7 +122,7 @@ class Launcher {
                     if (account.uuid === selectaccount) accountSelect(refresh.uuid)
                 } else if (account.meta.type === 'Mojang') {
                     if (account.meta.offline) {
-                    console.log(`Initializing Crack account ${account.name}...`);
+                        console.log(`Initializing Crack account ${account.name}...`);
                         addAccount(account);
                         if (account.uuid === selectaccount) accountSelect(account.uuid)
                         continue;
@@ -161,6 +162,20 @@ class Launcher {
                     this.database.update(refresh_accounts, 'accounts');
                     addAccount(refresh_accounts);
                     if (account.uuid === selectaccount) accountSelect(refresh.uuid)
+                } else if (account.meta.type === 'AZauth') {
+                    console.log(`Initializing AZauth account ${account.name}...`);
+                    let refresh = await this.AZauth.verify(account)
+
+                    if (refresh.error) {
+                        this.database.delete(account.uuid, 'accounts');
+                        this.database.delete(account.uuid, 'profile');
+                        if (account.uuid === selectaccount) this.database.update({ uuid: "1234" }, 'accounts-selected')
+                        console.error(`[Account] ${account.uuid}: ${refresh.errorMessage}`);
+                        continue;
+                    }
+                    this.database.update(refresh, 'accounts');
+                    addAccount(refresh);
+                    if (account.uuid === selectaccount) accountSelect(refresh.uuid)
                 } else {
                     this.database.delete(account.uuid, 'accounts');
                     if (account.uuid === selectaccount) this.database.update({ uuid: "1234" }, 'accounts-selected')
@@ -168,9 +183,6 @@ class Launcher {
             }
 
 
-
-
-            
             if (!(await this.database.get('1234', 'accounts-selected')).value.selected) {
                 let uuid = (await this.database.getAll('accounts'))[0]?.value?.uuid
                 if (uuid) {
