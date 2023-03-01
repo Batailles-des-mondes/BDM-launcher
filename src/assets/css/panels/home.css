@@ -229,7 +229,7 @@
     background-color: #292929;
     border-radius: 10px;
     transition: opacity 1s;
-    opacity: .4;
+    opacity: .8;
 }
 
 .server:hover {
