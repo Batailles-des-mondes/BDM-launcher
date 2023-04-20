@@ -5,7 +5,10 @@
 
 const { app, ipcMain } = require('electron');
 const { Microsoft } = require('minecraft-java-core');
-const { autoUpdater } = require('electron-updater')
+const { autoUpdater } = require('electron-updater');
+const clientId = '1098623006282109048';
+const DiscordRPC = require('discord-rpc');
+const RPC = new DiscordRPC.Client({transport:'ipc'});
 
 const path = require('path');
 const fs = require('fs');
@@ -98,3 +101,31 @@ autoUpdater.on('download-progress', (progress) => {
     const updateWindow = UpdateWindow.getWindow();
     if (updateWindow) updateWindow.webContents.send('download-progress', progress);
 })
+
+DiscordRPC.register(clientId);
+
+async function setActivity() {
+    if (!RPC) return;
+    RPC.setActivity({
+        details: 'Batailles des Mondes[Beta]',
+        state:'Joue a Batailles Des Mondes',
+        startTimestamp: Date.now(),
+        largeImageKey:'bdmpf',
+        largeImageText: 'bdmpf.',
+        smallImageKey:'bdmpf',
+        smallImageText:'small Icon.',
+        instance: false,
+        buttons:[
+            {
+                label:'Rejoindre le serveur !',
+                url: 'https://batailles-des-mondes.fr/',
+            }
+        ] 
+    });
+};
+
+RPC.on('ready', async() => {
+    setActivity();
+});
+
+RPC.login({clientId}).catch(err => console.error(err))
