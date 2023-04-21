@@ -107,8 +107,7 @@ DiscordRPC.register(clientId);
 async function setActivity() {
     if (!RPC) return;
     RPC.setActivity({
-        details: 'Batailles des Mondes[Beta]',
-        state:'Joue a Batailles Des Mondes',
+        state:'Joue sur Batailles Des Mondes',
         startTimestamp: Date.now(),
         largeImageKey:'bdmpf',
         largeImageText: 'bdmpf.',
@@ -119,6 +118,10 @@ async function setActivity() {
             {
                 label:'Rejoindre le serveur !',
                 url: 'https://batailles-des-mondes.fr/',
+            },
+            {
+                label:'Rejoindre le discord !',
+                url: 'https://discord.com/invite/CHwgwwkcyB'
             }
         ] 
     });

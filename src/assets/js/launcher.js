@@ -21,7 +21,6 @@ class Launcher {
         console.log("Initializing Launcher...");
         if (process.platform == "win32") this.initFrame();
         this.config = await config.GetConfig().then(res => res);
-        this.news = await config.GetNews().then(res => res);
         this.database = await new database().init();
         this.AZauth = new AZauth('https://batailles-des-mondes.fr')
         this.createPanels(Login, Home, Settings);
